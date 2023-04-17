@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { uploadFile, getFiles, downloadFile, getFileURL, deleteFile } = require('./s3.js');
-const rimraf = require('rimraf');
+const { deleteDir } = require('./utils.js');
 const router = Router();
 
 router.get('/files/:fileName', async (req, res) => {
@@ -40,10 +40,11 @@ router.get('/fileUrl/:fileName', async (req, res) => {
 
 router.post('/files', async (req, res) => {
     await uploadFile(req.files['video']);
-    rimraf.sync('./uploads');
+    deleteDir('./uploads');
+    //rimraf.sync('./uploads');
 
     res.json({ message: 'upload file' });
-    console.log('upload file')
+    console.log('upload file');
 })
 
 router.post('/test', async (req, res) => {
