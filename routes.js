@@ -1,6 +1,7 @@
 const { Router } = require('express');
+const fs = require('fs');
 const { uploadFile, getFiles, downloadFile, getFileURL, deleteFile } = require('./s3.js');
-const { deleteDir } = require('./utils.js');
+const { deleteDir, readJsonFile } = require('./utils.js');
 const router = Router();
 
 router.get('/files/:fileName', async (req, res) => {
@@ -39,12 +40,26 @@ router.get('/fileUrl/:fileName', async (req, res) => {
 })
 
 router.post('/files', async (req, res) => {
-    await uploadFile(req.files['video']);
-    deleteDir('./uploads');
-    //rimraf.sync('./uploads');
+    try {
+        const screenJsonData = await readJsonFile(req.files['json_screen'].tempFilePath);
+        const consultancyJsonData = await readJsonFile(req.files['json_consultancy'].tempFilePath);
+        const screenName = screenJsonData.nameScreen;
+        const consultancyName = consultancyJsonData.nameConsultancy;
+        const folderPathScreen = `Consultorías TI/${consultancyName}/Observaciones/${screenName}`;
+        const folderPathConsultancy = `Consultorías TI/${consultancyName}`;
 
-    res.json({ message: 'upload file' });
-    console.log('upload file');
+        await uploadFile(req.files['json_screen'], folderPathScreen);
+        await uploadFile(req.files['video'], folderPathScreen);
+        await uploadFile(req.files['json_consultancy'], folderPathConsultancy);
+        deleteDir('./uploads');
+        //rimraf.sync('./uploads');
+
+        res.json({ message: 'upload file' });
+        console.log('upload file');
+    } catch (error) {
+        console.error('Error al procesar archivos JSON:', error);
+        return res.status(500).json({ error: 'Error al procesar archivos JSON' });
+    }
 })
 
 router.post('/test', async (req, res) => {

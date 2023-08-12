@@ -9,8 +9,8 @@ const client = new minio.Client({
     secretKey: MINIO_SECRET_KEY
 });
 
-async function uploadFile(file) {
-    await client.fPutObject(MINIO_BUCKET_NAME, file.name, file.tempFilePath);
+async function uploadFile(file, folderPath) {
+    await client.fPutObject(MINIO_BUCKET_NAME, `${folderPath}/${file.name}`, file.tempFilePath);
 }
 
 async function getFiles() {
