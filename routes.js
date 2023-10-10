@@ -138,7 +138,7 @@ router.post("/fileUrl", async (req, res) => {
 
     res.json(url);
   } catch (error) {
-      res.status(500).send("Error al obtener la ruta del archivo");
+    res.status(500).send("Error al obtener la ruta del archivo");
   }
 });
 
@@ -231,8 +231,12 @@ router.post("/getFoldersData", async (req, res) => {
 
     stream.on("end", async () => {
       for (const folderName of folderNames) {
-        const contentStream = await readFiles(`${req.body.prefix}${folderName}/info.json`);
-        const thumbnailStream = await readFiles(`${req.body.prefix}${folderName}/thumbnail.png`);
+        const contentStream = await readFiles(
+          `${req.body.prefix}${folderName}/info.json`
+        );
+        const thumbnailStream = await readFiles(
+          `${req.body.prefix}${folderName}/thumbnail.png`
+        );
         let contentData = "";
         let imageData = [];
 
@@ -254,25 +258,31 @@ router.post("/getFoldersData", async (req, res) => {
 
         if (req.body.isConsultancy) {
           if (
-              (req.body.routeName === "Home" ?
-                (jsonData.view === "Pública" ||
-                  req.body.user === jsonData.author || 
-                  jsonData.collaborators.includes(req.body.user)) :
-                (req.body.routeName === "MyConsultancies" ?
-                  req.body.user === jsonData.author : 
-                  jsonData.collaborators.includes(req.body.user)))
+            req.body.routeName === "Home"
+              ? jsonData.view === "Pública" ||
+                req.body.user === jsonData.author ||
+                jsonData.collaborators.includes(req.body.user)
+              : req.body.routeName === "MyConsultancies"
+              ? req.body.user === jsonData.author
+              : jsonData.collaborators.includes(req.body.user)
           ) {
             folderContent[folderName] = jsonData;
             folderThumbnail[folderName] = base64Image;
           } else {
-            filterFolderNames = filterFolderNames.filter((filterFolderName) => filterFolderName !== folderName);
+            filterFolderNames = filterFolderNames.filter(
+              (filterFolderName) => filterFolderName !== folderName
+            );
           }
         } else {
           folderContent[folderName] = jsonData;
           folderThumbnail[folderName] = base64Image;
         }
       }
-      res.json({ folderNames: req.body.isConsultancy ? filterFolderNames : folderNames, folderContent, folderThumbnail });
+      res.json({
+        folderNames: req.body.isConsultancy ? filterFolderNames : folderNames,
+        folderContent,
+        folderThumbnail,
+      });
     });
   } catch (error) {
     res.status(500).send("Error al leer los archivos");
@@ -317,7 +327,7 @@ router.post("/files", async (req, res) => {
 });
 
 router.post("/deleteFile", async (req, res) => {
-  try{
+  try {
     await deleteFile(req.body.prefix);
 
     console.log("deleted file");
