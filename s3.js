@@ -14,9 +14,9 @@ const client = new minio.Client({
   secretKey: MINIO_SECRET_KEY,
 });
 
-async function uploadFile(file, prefix) {
+async function uploadFile(bucket, file, prefix) {
   await client.fPutObject(
-    MINIO_BUCKET_NAME,
+    bucket,
     `${prefix}/${file.name}`,
     file.tempFilePath
   );
@@ -26,21 +26,21 @@ async function getFiles() {
   return await client.listObjectsV2(MINIO_BUCKET_NAME);
 }
 
-async function getNameFiles(prefix) {
-  return await client.listObjectsV2(MINIO_BUCKET_NAME, prefix, false);
+async function getNameFiles(bucket, prefix) {
+  return await client.listObjectsV2(bucket, prefix, false);
 }
 
-async function downloadFile(prefix) {
-  return client.listObjectsV2(MINIO_BUCKET_NAME, prefix, true);
+async function downloadFile(bucket, prefix) {
+  return client.listObjectsV2(bucket, prefix, true);
 }
 
-async function readFiles(prefix) {
-  return client.getObject(MINIO_BUCKET_NAME, prefix);
+async function readFiles(bucket, prefix) {
+  return client.getObject(bucket, prefix);
 }
 
-async function checkFileExists(file, prefix) {
+async function checkFileExists(bucket, file, prefix) {
   try {
-    return await client.statObject(MINIO_BUCKET_NAME, `${prefix}/${file.name}`);
+    return await client.statObject(bucket, `${prefix}/${file.name}`);
   } catch (error) {
     if (error.code === "NotFound") {
       return null;
@@ -49,12 +49,12 @@ async function checkFileExists(file, prefix) {
   }
 }
 
-async function getFileURL(prefix) {
-  return await client.presignedUrl("GET", MINIO_BUCKET_NAME, prefix, 3600);
+async function getFileURL(bucket, prefix) {
+  return await client.presignedUrl("GET", bucket, prefix, 3600);
 }
 
-async function deleteFile(prefix) {
-  const objects = await client.listObjectsV2(MINIO_BUCKET_NAME, prefix, true);
+async function deleteFile(bucket, prefix) {
+  const objects = await client.listObjectsV2(bucket, prefix, true);
   const objectsToDelete = [];
 
   objects.on("data", (obj) => {
@@ -62,7 +62,7 @@ async function deleteFile(prefix) {
   });
 
   objects.on("end", async () => {
-    client.removeObjects(MINIO_BUCKET_NAME, objectsToDelete);
+    client.removeObjects(bucket, objectsToDelete);
   });
 }
 

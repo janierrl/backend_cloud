@@ -29,7 +29,7 @@ router.get("/files/:fileName", async (req, res) => {
 
 router.post("/downloadFolder", async (req, res) => {
   try {
-    const objects = await downloadFile(req.body.prefix);
+    const objects = await downloadFile(req.body.bucket, req.body.prefix);
 
     res.setHeader(
       "Content-Disposition",
@@ -134,7 +134,7 @@ router.get("/files", async (req, res) => {
 
 router.post("/fileUrl", async (req, res) => {
   try {
-    const url = await getFileURL(req.body.prefix);
+    const url = await getFileURL(req.body.bucket, req.body.prefix);
 
     res.json(url);
   } catch (error) {
@@ -144,7 +144,7 @@ router.post("/fileUrl", async (req, res) => {
 
 router.post("/nameFolders", async (req, res) => {
   try {
-    const stream = await getNameFiles(req.body.prefix);
+    const stream = await getNameFiles(req.body.bucket, req.body.prefix);
     const folderNames = [];
 
     stream.on("data", (obj) => {
@@ -210,7 +210,7 @@ router.post("/contentPNG", async (req, res) => {
 
 router.post("/getFoldersData", async (req, res) => {
   try {
-    const stream = await getNameFiles(req.body.prefix);
+    const stream = await getNameFiles(req.body.bucket, req.body.prefix);
     const folderNames = [];
     const folderContent = {};
     const folderThumbnail = {};
@@ -232,9 +232,11 @@ router.post("/getFoldersData", async (req, res) => {
     stream.on("end", async () => {
       for (const folderName of folderNames) {
         const contentStream = await readFiles(
+          req.body.bucket,
           `${req.body.prefix}${folderName}/info.json`
         );
         const thumbnailStream = await readFiles(
+          req.body.bucket,
           `${req.body.prefix}${folderName}/thumbnail.png`
         );
         let contentData = "";
@@ -303,17 +305,18 @@ router.post("/files", async (req, res) => {
     const folderPathScreen = `Consultorías TI/${consultancyName}/Observaciones/${screenName}`;
     const folderPathConsultancy = `Consultorías TI/${consultancyName}`;
     const thumbnailExistsInConsultancy = await checkFileExists(
+      req.body.bucket,
       req.files["thumbnail"],
       folderPathConsultancy
     );
 
-    await uploadFile(req.files["json_screen"], folderPathScreen);
-    await uploadFile(req.files["video"], folderPathScreen);
-    await uploadFile(req.files["thumbnail"], folderPathScreen);
-    await uploadFile(req.files["json_consultancy"], folderPathConsultancy);
+    await uploadFile(req.body.bucket, req.files["json_screen"], folderPathScreen);
+    await uploadFile(req.body.bucket, req.files["video"], folderPathScreen);
+    await uploadFile(req.body.bucket, req.files["thumbnail"], folderPathScreen);
+    await uploadFile(req.body.bucket, req.files["json_consultancy"], folderPathConsultancy);
 
     if (!thumbnailExistsInConsultancy) {
-      await uploadFile(req.files["thumbnail"], folderPathConsultancy);
+      await uploadFile(req.body.bucket, req.files["thumbnail"], folderPathConsultancy);
     }
 
     deleteDir("./uploads");
@@ -328,7 +331,7 @@ router.post("/files", async (req, res) => {
 
 router.post("/deleteFile", async (req, res) => {
   try {
-    await deleteFile(req.body.prefix);
+    await deleteFile(req.body.bucket, req.body.prefix);
 
     console.log("deleted file");
   } catch (error) {
